@@ -230,8 +230,10 @@ export function prepareContext(
           ...(baseBranch && { baseBranch }),
         };
         break;
-      } else if (!claudeBranch) {
-        throw new Error("CLAUDE_BRANCH is required for issue_comment event");
+      } else if (!claudeBranch && context.inputs.commitMode !== "direct") {
+        throw new Error(
+          "CLAUDE_BRANCH is required for issue_comment event (except in direct mode)",
+        );
       } else if (!baseBranch) {
         throw new Error("BASE_BRANCH is required for issue_comment event");
       } else if (!issueNumber) {
@@ -264,8 +266,10 @@ export function prepareContext(
       if (!baseBranch) {
         throw new Error("BASE_BRANCH is required for issues event");
       }
-      if (!claudeBranch) {
-        throw new Error("CLAUDE_BRANCH is required for issues event");
+      if (!claudeBranch && context.inputs.commitMode !== "direct") {
+        throw new Error(
+          "CLAUDE_BRANCH is required for issues event (except in direct mode)",
+        );
       }
 
       if (eventAction === "assigned") {
@@ -792,7 +796,15 @@ Important Notes:
 - This includes ALL responses: code reviews, answers to questions, progress updates, and final results.${eventData.isPR ? `\n- PR CRITICAL: After reading files and forming your response, you MUST post it by calling mcp__github_comment__update_claude_comment. Do NOT just respond with a normal response, the user will not see it.` : ""}
 - You communicate exclusively by editing your single comment - not through any other means.
 - Use this spinner HTML when work is in progress: <img src="https://github.com/user-attachments/assets/5ac382c7-e004-429b-8e35-7feb3e8f9c6f" width="14px" height="14px" style="vertical-align: middle; margin-left: 4px;" />
-${eventData.isPR && !eventData.claudeBranch ? `- Always push to the existing branch when triggered on a PR.` : `- IMPORTANT: You are already on the correct branch (${eventData.claudeBranch || "the created branch"}). Never create new branches when triggered on issues or closed/merged PRs.`}
+${
+  eventData.isPR && !eventData.claudeBranch
+    ? `- Always push to the existing branch when triggered on a PR.`
+    : context.githubContext?.inputs.commitMode === "direct"
+      ? `- DIRECT MODE: Push changes directly to '${eventData.baseBranch}'. No PR will be created.`
+      : context.githubContext?.inputs.commitMode === "auto_pr"
+        ? `- You are on branch '${eventData.claudeBranch || "the created branch"}'. After pushing, a PR will be automatically created. Never create new branches.`
+        : `- IMPORTANT: You are already on the correct branch (${eventData.claudeBranch || "the created branch"}). Never create new branches when triggered on issues or closed/merged PRs.`
+}
 ${
   useCommitSigning
     ? `- Use mcp__github_file_ops__commit_files for making commits (works for both new and existing files, single or multiple). Use mcp__github_file_ops__delete_files for deleting files (supports deleting single or multiple files atomically), or mcp__github__delete_file for deleting a single file. Edit files locally, and the tool will read the content from the same path on disk.

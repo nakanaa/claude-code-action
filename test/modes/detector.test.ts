@@ -18,6 +18,7 @@ describe("detectMode with enhanced routing", () => {
       assigneeTrigger: "",
       labelTrigger: "",
       branchPrefix: "claude/",
+      commitMode: "link" as const,
       useStickyComment: false,
       useCommitSigning: false,
       sshSigningKey: "",

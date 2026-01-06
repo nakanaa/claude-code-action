@@ -22,6 +22,8 @@ async function run() {
     const claudeBranch = process.env.CLAUDE_BRANCH;
     const baseBranch = process.env.BASE_BRANCH || "main";
     const triggerUsername = process.env.TRIGGER_USERNAME;
+    const commitMode = process.env.COMMIT_MODE || "link";
+    const claudeSuccess = process.env.CLAUDE_SUCCESS !== "false";
 
     const context = parseGitHubContext();
 
@@ -233,6 +235,39 @@ async function run() {
         updateError,
       );
       throw updateError;
+    }
+
+    // Auto-create PR for auto_pr mode
+    if (
+      commitMode === "auto_pr" &&
+      claudeBranch &&
+      !shouldDeleteBranch &&
+      claudeSuccess
+    ) {
+      console.log(
+        `AUTO_PR MODE: Creating pull request for branch ${claudeBranch}`,
+      );
+      try {
+        const { execSync } = await import("child_process");
+        const entityType = context.isPR ? "PR" : "Issue";
+        const prTitle = `${entityType} #${context.entityNumber}: Changes from Claude`;
+        const prBody = `This PR addresses ${entityType.toLowerCase()} #${context.entityNumber}\n\nGenerated with [Claude Code](https://claude.ai/code)`;
+
+        execSync(
+          `gh pr create --base "${baseBranch}" --head "${claudeBranch}" --title "${prTitle}" --body "${prBody}"`,
+          {
+            stdio: "inherit",
+            env: { ...process.env, GH_TOKEN: githubToken },
+          },
+        );
+        console.log(`✅ Successfully created PR for branch ${claudeBranch}`);
+      } catch (prError) {
+        console.error("Failed to create PR automatically:", prError);
+        // Don't fail the entire job if PR creation fails
+        console.log(
+          "User can still create PR manually using the link in the comment",
+        );
+      }
     }
 
     process.exit(0);

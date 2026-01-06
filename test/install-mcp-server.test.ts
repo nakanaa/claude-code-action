@@ -30,6 +30,7 @@ describe("prepareMcpConfig", () => {
       assigneeTrigger: "",
       labelTrigger: "",
       branchPrefix: "",
+      commitMode: "link" as const,
       useStickyComment: false,
       useCommitSigning: false,
       sshSigningKey: "",

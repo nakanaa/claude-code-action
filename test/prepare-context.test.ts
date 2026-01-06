@@ -73,7 +73,9 @@ describe("parseEnvVarsWithContext", () => {
       test("should throw error when CLAUDE_BRANCH is missing", () => {
         expect(() =>
           prepareContext(mockIssueCommentContext, "12345", "main"),
-        ).toThrow("CLAUDE_BRANCH is required for issue_comment event");
+        ).toThrow(
+          "CLAUDE_BRANCH is required for issue_comment event (except in direct mode)",
+        );
       });
 
       test("should throw error when BASE_BRANCH is missing", () => {
@@ -225,7 +227,9 @@ describe("parseEnvVarsWithContext", () => {
     test("should throw error when CLAUDE_BRANCH is missing for issues", () => {
       expect(() =>
         prepareContext(mockIssueOpenedContext, "12345", "main"),
-      ).toThrow("CLAUDE_BRANCH is required for issues event");
+      ).toThrow(
+        "CLAUDE_BRANCH is required for issues event (except in direct mode)",
+      );
     });
 
     test("should throw error when BASE_BRANCH is missing for issues", () => {

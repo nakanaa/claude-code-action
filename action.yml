@@ -23,6 +23,10 @@ inputs:
     description: "The prefix to use for Claude branches (defaults to 'claude/', use 'claude-' for dash format)"
     required: false
     default: "claude/"
+  commit_mode:
+    description: "How to handle commits for issues: 'link' (create branch, show PR link), 'auto_pr' (create branch, auto-create PR), 'direct' (commit to base branch, no PR)"
+    required: false
+    default: "link"
   allowed_bots:
     description: "Comma-separated list of allowed bot usernames, or '*' to allow all bots. Empty string (default) allows no bots."
     required: false
@@ -178,6 +182,7 @@ runs:
         LABEL_TRIGGER: ${{ inputs.label_trigger }}
         BASE_BRANCH: ${{ inputs.base_branch }}
         BRANCH_PREFIX: ${{ inputs.branch_prefix }}
+        COMMIT_MODE: ${{ inputs.commit_mode }}
         OVERRIDE_GITHUB_TOKEN: ${{ inputs.github_token }}
         ALLOWED_BOTS: ${{ inputs.allowed_bots }}
         ALLOWED_NON_WRITE_USERS: ${{ inputs.allowed_non_write_users }}
@@ -322,6 +327,7 @@ runs:
         USE_STICKY_COMMENT: ${{ inputs.use_sticky_comment }}
         USE_COMMIT_SIGNING: ${{ inputs.use_commit_signing }}
         TRACK_PROGRESS: ${{ inputs.track_progress }}
+        COMMIT_MODE: ${{ inputs.commit_mode }}
 
     - name: Display Claude Code Report
       if: steps.prepare.outputs.contains_trigger == 'true' && steps.claude-code.outputs.execution_file != ''

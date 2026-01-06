@@ -188,6 +188,27 @@ export async function setupBranch(
     sourceBranch = repoResponse.data.default_branch;
   }
 
+  // For direct mode, skip branch creation and just checkout base branch
+  if (context.inputs.commitMode === "direct") {
+    console.log(
+      `DIRECT MODE: Skipping branch creation, checking out base branch: ${sourceBranch}`,
+    );
+
+    validateBranchName(sourceBranch);
+    execGit(["fetch", "origin", sourceBranch, "--depth=1"]);
+    execGit(["checkout", sourceBranch, "--"]);
+
+    console.log(`Successfully checked out base branch: ${sourceBranch}`);
+
+    // Set outputs for GitHub Actions
+    core.setOutput("BASE_BRANCH", sourceBranch);
+    return {
+      baseBranch: sourceBranch,
+      claudeBranch: undefined,
+      currentBranch: sourceBranch,
+    };
+  }
+
   // Generate branch name for either an issue or closed/merged PR
   const entityType = isPR ? "pr" : "issue";
 

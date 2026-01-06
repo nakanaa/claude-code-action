@@ -88,6 +88,7 @@ type BaseContext = {
     labelTrigger: string;
     baseBranch?: string;
     branchPrefix: string;
+    commitMode: "direct" | "auto_pr" | "link";
     useStickyComment: boolean;
     useCommitSigning: boolean;
     sshSigningKey: string;
@@ -145,6 +146,16 @@ export function parseGitHubContext(): GitHubContext {
       labelTrigger: process.env.LABEL_TRIGGER ?? "",
       baseBranch: process.env.BASE_BRANCH,
       branchPrefix: process.env.BRANCH_PREFIX ?? "claude/",
+      commitMode: (() => {
+        const value = process.env.COMMIT_MODE || "link";
+        const validModes = ["direct", "auto_pr", "link"] as const;
+        if (!validModes.includes(value as any)) {
+          throw new Error(
+            `Invalid COMMIT_MODE: ${value}. Must be one of: ${validModes.join(", ")}`,
+          );
+        }
+        return value as "direct" | "auto_pr" | "link";
+      })(),
       useStickyComment: process.env.USE_STICKY_COMMENT === "true",
       useCommitSigning: process.env.USE_COMMIT_SIGNING === "true",
       sshSigningKey: process.env.SSH_SIGNING_KEY || "",

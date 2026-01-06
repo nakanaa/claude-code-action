@@ -66,6 +66,7 @@ describe("checkWritePermissions", () => {
       assigneeTrigger: "",
       labelTrigger: "",
       branchPrefix: "claude/",
+      commitMode: "link" as const,
       useStickyComment: false,
       useCommitSigning: false,
       sshSigningKey: "",
